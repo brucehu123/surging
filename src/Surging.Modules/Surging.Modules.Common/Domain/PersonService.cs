@@ -122,9 +122,9 @@ namespace Surging.Modules.Common.Domain
             return Task.FromResult("type is List<int>");
         }
 
-        public async Task<bool> UploadFile(HttpFormCollection form)
+        public async Task<bool> UploadFile(HttpFormCollection form1)
         {
-            var files = form.Files;
+            var files = form1.Files;
             foreach (var file in files)
             {
                 using (var stream = new FileStream(Path.Combine(AppContext.BaseDirectory, file.FileName), FileMode.Create))
@@ -163,6 +163,11 @@ namespace Surging.Modules.Common.Domain
         public async Task<Dictionary<string, object>> GetAllThings()
         {
             return await Task.FromResult(new Dictionary<string, object> { { "aaa", 12 } });
+        }
+
+        public Task<bool> RemoveUser(UserModel user)
+        {
+            return Task.FromResult(true);
         }
 
         #endregion Implementation of IUserService

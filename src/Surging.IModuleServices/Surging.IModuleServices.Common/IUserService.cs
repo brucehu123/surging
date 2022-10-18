@@ -57,6 +57,7 @@ namespace Surging.IModuleServices.Common
         /// <param name="requestData">请求参数</param>
         /// <returns></returns>
         [Authorization(AuthType = AuthorizationType.JWT)]
+        [Permission]
         [HttpPost(true),HttpPut(true)]
         Task<IdentityUser> Save(IdentityUser requestData);
 
@@ -186,5 +187,9 @@ new Surging.IModuleServices.Common.Models.UserModel
 
         [Metadatas.ServiceCacheIntercept(Metadatas.CachingMethod.Remove, "GetUser_{0}_{1}", CacheSectionType ="ddlCache", Mode = Metadatas.CacheTargetType.Redis)]
         public Task<bool> RemoveUser(UserModel user);
+
+
+        [Reactive]
+        public Task<int> ReactiveTest(int value);
     }
 }

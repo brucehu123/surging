@@ -27,6 +27,7 @@ using System.Diagnostics;
 using Surging.Core.CPlatform.Configurations;
 using Surging.Core.CPlatform.Diagnostics;
 using Surging.Core.CPlatform.Utilities;
+using System.Reactive.Subjects;
 
 namespace Surging.Core.KestrelHttpServer
 {
@@ -131,10 +132,11 @@ namespace Surging.Core.KestrelHttpServer
             _moduleProvider.Initialize(new ApplicationInitializationContext(app, _moduleProvider.Modules,
                 _moduleProvider.VirtualPaths,
                 AppConfig.Configuration));
-            app.Run(async (context) =>
+            app.Use(async (context,next) =>
             {
                 var messageId = Guid.NewGuid().ToString("N");
-                var sender = new HttpServerMessageSender(_serializer, context,_diagnosticListener);
+                var subject = new ReplaySubject<HttpResultMessage<object>>();
+                var sender = new HttpServerMessageSender(_serializer, context,_diagnosticListener, subject);
                 try
                 {
                     var filters = app.ApplicationServices.GetServices<IAuthorizationFilter>();
@@ -142,8 +144,9 @@ namespace Surging.Core.KestrelHttpServer
                     if (isSuccess)
                     {
                         var actionFilters = app.ApplicationServices.GetServices<IActionFilter>();
-                        await OnReceived(sender, messageId, context, actionFilters);
+                        await OnReceived(sender, messageId, context, actionFilters, subject);
                     }
+                    await next();
                 }
                 catch (Exception ex)
                 {
@@ -152,6 +155,7 @@ namespace Surging.Core.KestrelHttpServer
                     await OnException(context, sender, messageId, ex, filters);
                 }
             });
+            app.Run( context=> Task.CompletedTask);
         }
 
         private void WirteDiagnosticError(string messageId,Exception ex)
